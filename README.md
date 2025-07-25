@@ -136,6 +136,22 @@ npm run docker:down
 - `GET /api/v1/auth/sessions` - Get user active sessions (protected)
 - `DELETE /api/v1/auth/sessions/:sessionId` - Revoke specific session (protected)
 
+## Postman Collection
+
+For easy API testing, import the provided Postman collection:
+
+1. **Import Collection**: Import `postman_collection.json` into Postman
+2. **Import Environment**: Import `postman_environment.json` into Postman
+3. **Select Environment**: Choose "TypeScript Express API - Local" environment
+4. **Start Testing**: Use the pre-configured requests with automatic token management
+
+### Features:
+- **Automatic Token Management**: Tokens are automatically saved after login/register
+- **Bearer Authentication**: Pre-configured for protected endpoints
+- **Environment Variables**: All URLs and tokens managed automatically
+- **Test Scripts**: Built-in validation and error handling
+- **Organized Folders**: Endpoints grouped by functionality
+
 ## Example API Usage
 
 ### Check server readiness
@@ -246,14 +262,3 @@ npm run build
 ```bash
 npm start
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details 
