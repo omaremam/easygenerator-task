@@ -9,12 +9,18 @@ import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
 import { healthRouter } from './routes/health';
 import { apiRouter } from './routes/api';
+import connectDB from './config/database';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env['PORT'] || 3000;
+
+// Connect to MongoDB only if not in test environment
+if (process.env['NODE_ENV'] !== 'test') {
+  connectDB();
+}
 
 // Security middleware
 app.use(helmet());
@@ -54,11 +60,12 @@ app.use(errorHandler);
 
 // Start server only if not in test environment
 if (process.env['NODE_ENV'] !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔗 API Base URL: http://localhost:${PORT}/api/v1`);
-  });
+          app.listen(PORT, () => {
+          console.log(`🚀 Server is running on port ${PORT}`);
+          console.log(`📊 Health check: http://localhost:${PORT}/health`);
+          console.log(`✅ Readiness check: http://localhost:${PORT}/health/ready`);
+          console.log(`🔗 API Base URL: http://localhost:${PORT}/api/v1`);
+        });
 }
 
 export default app; 
