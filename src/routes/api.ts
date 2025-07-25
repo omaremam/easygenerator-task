@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { usersRouter } from './users';
+import { authRouter } from './auth';
 
 export const apiRouter = Router();
 
@@ -10,6 +11,7 @@ apiRouter.get('/', (_req, res) => {
     message: 'API v1 is running',
     version: '1.0.0',
     endpoints: {
+      auth: '/auth',
       users: '/users',
       health: '/health',
     },
@@ -17,4 +19,5 @@ apiRouter.get('/', (_req, res) => {
 });
 
 // Mount sub-routers
+apiRouter.use('/auth', authRouter);
 apiRouter.use('/users', usersRouter); 

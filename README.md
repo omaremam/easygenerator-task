@@ -7,6 +7,13 @@ A modern, well-structured TypeScript Node.js Express.js API with comprehensive t
 - 🚀 **TypeScript** - Full TypeScript support with strict configuration
 - 🔒 **Security** - Helmet, CORS, rate limiting, and input validation
 - 📝 **Logging** - Morgan HTTP request logging
+- 🔐 **Authentication** - JWT-based authentication with access and refresh tokens
+- 🔑 **Password Security** - bcrypt password hashing with salt rounds
+- ⏰ **Token Management** - 15-minute access tokens and 7-day refresh tokens
+- 🚫 **Token Blacklisting** - Redis-based token revocation and blacklisting
+- 📱 **Session Management** - Track and manage user sessions across devices
+- 🔄 **Token Refresh** - Secure refresh token rotation
+- 🧹 **Automatic Cleanup** - Periodic cleanup of expired tokens
 
 - 🔧 **Development** - Hot reload with nodemon
 - 📊 **Health Checks** - Built-in health monitoring endpoint
@@ -119,6 +126,16 @@ npm run docker:down
 - `PUT /api/v1/users/:id` - Update user
 - `DELETE /api/v1/users/:id` - Delete user
 
+### Authentication
+- `POST /api/v1/auth/register` - Register a new user
+- `POST /api/v1/auth/signin` - Sign in user
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `GET /api/v1/auth/profile` - Get current user profile (protected)
+- `POST /api/v1/auth/signout` - Sign out user (protected)
+- `POST /api/v1/auth/signout-all` - Sign out from all devices (protected)
+- `GET /api/v1/auth/sessions` - Get user active sessions (protected)
+- `DELETE /api/v1/auth/sessions/:sessionId` - Revoke specific session (protected)
+
 ## Example API Usage
 
 ### Check server readiness
@@ -143,6 +160,51 @@ curl -X POST http://localhost:3000/api/v1/users \
 curl http://localhost:3000/api/v1/users/1
 ```
 
+### Register a new user
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name": "John Doe", "email": "john@example.com", "password": "password123"}'
+```
+
+### Sign in user
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com", "password": "password123"}'
+```
+
+### Get user profile (protected route)
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  http://localhost:3000/api/v1/auth/profile
+```
+
+### Refresh access token
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refreshToken": "YOUR_REFRESH_TOKEN"}'
+```
+
+### Sign out from all devices
+```bash
+curl -X POST -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  http://localhost:3000/api/v1/auth/signout-all
+```
+
+### Get user sessions
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  http://localhost:3000/api/v1/auth/sessions
+```
+
+### Revoke specific session
+```bash
+curl -X DELETE -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  http://localhost:3000/api/v1/auth/sessions/SESSION_ID
+```
+
 ## Environment Variables
 
 Create a `.env` file based on `env.example`:
@@ -151,6 +213,11 @@ Create a `.env` file based on `env.example`:
 PORT=3000
 NODE_ENV=development
 API_PREFIX=/api/v1
+MONGODB_URI=mongodb://localhost:27017/api_db
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-in-production
 ```
 
 ## Development

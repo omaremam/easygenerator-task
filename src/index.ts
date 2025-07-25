@@ -10,6 +10,8 @@ import { notFoundHandler } from './middleware/notFoundHandler';
 import { healthRouter } from './routes/health';
 import { apiRouter } from './routes/api';
 import connectDB from './config/database';
+import { redisService } from './services/redis';
+import { cleanupService } from './services/cleanup';
 
 // Load environment variables
 dotenv.config();
@@ -20,6 +22,12 @@ const PORT = process.env['PORT'] || 3000;
 // Connect to MongoDB only if not in test environment
 if (process.env['NODE_ENV'] !== 'test') {
   connectDB();
+  
+  // Connect to Redis
+  redisService.connect().catch(console.error);
+  
+  // Start cleanup service
+  cleanupService.start();
 }
 
 // Security middleware
