@@ -40,58 +40,77 @@ export const generateTokens = async (
   userId: string, 
   email: string, 
   userAgent?: string, 
-  ipAddress?: string
+  ipAddress?: string,
+  deviceName?: string
 ): Promise<TokenResponse> => {
-  const tokenId = generateTokenId();
-  
-  const accessTokenPayload: TokenPayload = {
-    userId,
-    email,
-    type: 'access',
-    jti: tokenId
-  };
-
-  const refreshTokenPayload: TokenPayload = {
-    userId,
-    email,
-    type: 'refresh',
-    jti: tokenId
-  };
-
-  const accessToken = jwt.sign(accessTokenPayload, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN,
-    jwtid: tokenId
-  });
-
-  const refreshToken = jwt.sign(refreshTokenPayload, JWT_REFRESH_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
-    jwtid: tokenId
-  });
-
-  // Store refresh token in database
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
-
   try {
-    await RefreshToken.create({
-      token: refreshToken,
+    console.log('🔄 Starting token generation for user:', userId);
+    
+    const tokenId = generateTokenId();
+    console.log('✅ Token ID generated:', tokenId);
+    
+    const accessTokenPayload: TokenPayload = {
       userId,
-      userAgent,
-      ipAddress,
-      expiresAt
-    });
-  } catch (error) {
-    console.error('Failed to store refresh token:', error);
-    // Continue without storing refresh token for now
-  }
+      email,
+      type: 'access'
+      // jti removed from payload
+    };
 
-  return {
-    accessToken,
-    refreshToken,
-    accessTokenExpiresIn: ACCESS_TOKEN_EXPIRES_IN,
-    refreshTokenExpiresIn: REFRESH_TOKEN_EXPIRES_IN,
-    tokenId
-  };
+    const refreshTokenPayload: TokenPayload = {
+      userId,
+      email,
+      type: 'refresh'
+      // jti removed from payload
+    };
+
+    console.log('🔄 Signing access token...');
+    const accessToken = jwt.sign(accessTokenPayload, JWT_SECRET, {
+      expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+      jwtid: tokenId
+    });
+    console.log('✅ Access token signed');
+
+    console.log('🔄 Signing refresh token...');
+    const refreshToken = jwt.sign(refreshTokenPayload, JWT_REFRESH_SECRET, {
+      expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+      jwtid: tokenId
+    });
+    console.log('✅ Refresh token signed');
+
+    // Store refresh token in database
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
+    console.log('🔄 Storing refresh token in database...');
+    try {
+      await RefreshToken.create({
+        token: refreshToken,
+        userId,
+        userAgent,
+        ipAddress,
+        deviceName,
+        expiresAt
+      });
+      console.log('✅ Refresh token stored in database');
+    } catch (error) {
+      console.error('❌ Failed to store refresh token:', error);
+      // Continue without storing refresh token for now
+    }
+
+    const result = {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresIn: ACCESS_TOKEN_EXPIRES_IN,
+      refreshTokenExpiresIn: REFRESH_TOKEN_EXPIRES_IN,
+      tokenId
+    };
+
+    console.log('✅ Token generation completed successfully');
+    return result;
+  } catch (error) {
+    console.error('❌ Token generation failed:', error);
+    throw error;
+  }
 };
 
 export const verifyAccessToken = async (token: string): Promise<TokenPayload> => {
@@ -224,12 +243,13 @@ export const getUserActiveSessions = async (userId: string): Promise<any[]> => {
       userId,
       isRevoked: false,
       expiresAt: { $gt: new Date() }
-    }).select('userAgent ipAddress createdAt');
+    }).select('userAgent ipAddress deviceName createdAt');
 
     return activeTokens.map(token => ({
       id: token.id,
       userAgent: token.userAgent,
       ipAddress: token.ipAddress,
+      deviceName: token.deviceName,
       createdAt: token.createdAt
     }));
   } catch (error) {

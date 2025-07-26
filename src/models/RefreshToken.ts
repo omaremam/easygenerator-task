@@ -5,6 +5,7 @@ export interface IRefreshToken extends Document {
   userId: mongoose.Types.ObjectId;
   userAgent?: string;
   ipAddress?: string;
+  deviceName?: string;
   isRevoked: boolean;
   expiresAt: Date;
   createdAt: Date;
@@ -29,6 +30,10 @@ const refreshTokenSchema = new Schema<IRefreshToken>({
     trim: true
   },
   ipAddress: {
+    type: String,
+    trim: true
+  },
+  deviceName: {
     type: String,
     trim: true
   },

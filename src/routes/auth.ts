@@ -15,9 +15,35 @@ export const authRouter = Router();
 
 // Helper function to get client info
 const getClientInfo = (req: Request) => {
+  const userAgent = req.get('User-Agent') || '';
+  
+  // Extract device name from user agent
+  let deviceName = 'Unknown Device';
+  
+  if (userAgent.includes('Windows')) {
+    deviceName = 'Windows PC';
+  } else if (userAgent.includes('Mac OS X')) {
+    deviceName = 'Mac';
+  } else if (userAgent.includes('Linux')) {
+    deviceName = 'Linux PC';
+  } else if (userAgent.includes('iPhone')) {
+    deviceName = 'iPhone';
+  } else if (userAgent.includes('iPad')) {
+    deviceName = 'iPad';
+  } else if (userAgent.includes('Android')) {
+    deviceName = 'Android Device';
+  } else if (userAgent.includes('Chrome')) {
+    deviceName = 'Chrome Browser';
+  } else if (userAgent.includes('Firefox')) {
+    deviceName = 'Firefox Browser';
+  } else if (userAgent.includes('Safari')) {
+    deviceName = 'Safari Browser';
+  }
+
   return {
-    userAgent: req.get('User-Agent'),
-    ipAddress: req.ip || req.connection.remoteAddress || req.socket.remoteAddress
+    userAgent,
+    ipAddress: req.ip || req.connection.remoteAddress || req.socket.remoteAddress,
+    deviceName
   };
 };
 
@@ -65,12 +91,15 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     });
 
     await user.save();
+    console.log('✅ User created successfully:', user.id);
 
     // Get client info
-    const { userAgent, ipAddress } = getClientInfo(req);
+    const { userAgent, ipAddress, deviceName } = getClientInfo(req);
 
     // Generate tokens
-    const tokens = await generateTokens(user.id, user.email, userAgent, ipAddress);
+    console.log('🔄 Generating tokens...');
+    const tokens = await generateTokens(user.id, user.email, userAgent, ipAddress, deviceName);
+    console.log('✅ Tokens generated successfully');
 
     res.status(201).json({
       success: true,
@@ -86,6 +115,13 @@ authRouter.post('/register', async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
+    console.error('❌ Registration error:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      name: error.name
+    });
+
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
@@ -142,10 +178,10 @@ authRouter.post('/signin', async (req: Request, res: Response) => {
     }
 
     // Get client info
-    const { userAgent, ipAddress } = getClientInfo(req);
+    const { userAgent, ipAddress, deviceName } = getClientInfo(req);
 
     // Generate tokens
-    const tokens = await generateTokens(user.id, user.email, userAgent, ipAddress);
+    const tokens = await generateTokens(user.id, user.email, userAgent, ipAddress, deviceName);
 
     res.status(200).json({
       success: true,
